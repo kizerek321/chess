@@ -15,7 +15,7 @@ while run:
     else:
         state.counter = 0
         
-    screen.fill('dark gray')
+    screen.fill('azure')
     draw_board(state)
     draw_pieces(state)
     draw_captured(state)

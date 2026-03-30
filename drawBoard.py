@@ -6,11 +6,11 @@ def draw_board(state):
     for i in range(32):
         column = i % 4
         row = i // 4
-        if row % 2 == 0:
-            pygame.draw.rect(screen, 'light gray', [
+        if row % 2 == 1:
+            pygame.draw.rect(screen, 'Brown', [
                              600 - (column * 200), row * 100, 100, 100])
         else:
-            pygame.draw.rect(screen, 'light gray', [
+            pygame.draw.rect(screen, 'Brown', [
                              700 - (column * 200), row * 100, 100, 100])
     pygame.draw.rect(screen, 'gray', [0, 800, WIDTH, 100])
     pygame.draw.rect(screen, 'gold', [0, 800, WIDTH, 100], 5)
@@ -91,7 +91,8 @@ def draw_check(state):
 
 def draw_game_over(state):
     pygame.draw.rect(screen, 'black', [200, 200, 400, 70])
-    screen.blit(font.render(
-        f'{state.winner} won the game!', True, 'white'), (210, 210))
-    screen.blit(font.render(f'Press ENTER to Restart!',
-                            True, 'white'), (210, 240))
+    if state.winner == "Draw":
+        screen.blit(font.render(f'{state.winner}!', True, 'white'), (210, 210))
+    else:
+        screen.blit(font.render(f'{state.winner} won the game!', True, 'white'), (210, 210))
+    screen.blit(font.render(f'Press ENTER to Restart!', True, 'white'), (210, 240))
