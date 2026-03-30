@@ -1,4 +1,5 @@
 import pygame
+import chess
 
 pygame.init()
 
@@ -50,12 +51,9 @@ white_knight_small = pygame.transform.scale(white_knight, (45, 45))
 white_pawn = pygame.image.load('images/white pawn.png')
 white_pawn = pygame.transform.scale(white_pawn, (65, 65))
 white_pawn_small = pygame.transform.scale(white_pawn, (45, 45))
-white_images = [white_pawn, white_queen, white_king, white_knight, white_rook, white_bishop]
-white_promotions = ['bishop', 'knight', 'rook', 'queen']
-small_white_images = [white_pawn_small, white_queen_small, white_king_small, white_knight_small,
-                      white_rook_small, white_bishop_small]
-black_images = [black_pawn, black_queen, black_king, black_knight, black_rook, black_bishop]
-small_black_images = [black_pawn_small, black_queen_small, black_king_small, black_knight_small,
-                      black_rook_small, black_bishop_small]
-black_promotions = ['bishop', 'knight', 'rook', 'queen']
-piece_list = ['pawn', 'queen', 'king', 'knight', 'rook', 'bishop']
+# Map chess.PieceType (1-6) to images. Index 0 is None to align with 1-based chess constants.
+white_images = [None, white_pawn, white_knight, white_bishop, white_rook, white_queen, white_king]
+small_white_images = [None, white_pawn_small, white_knight_small, white_bishop_small, white_rook_small, white_queen_small, white_king_small]
+
+black_images = [None, black_pawn, black_knight, black_bishop, black_rook, black_queen, black_king]
+small_black_images = [None, black_pawn_small, black_knight_small, black_bishop_small, black_rook_small, black_queen_small, black_king_small]
