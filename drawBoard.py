@@ -1,6 +1,33 @@
 import pygame
 import chess
+import sys
 from constants import *
+
+
+def get_promotion_choice(color: chess.Color) -> int:
+    pygame.draw.rect(screen, 'black', [300, 350, 400, 100])
+    pygame.draw.rect(screen, 'gold', [300, 350, 400, 100], 3)
+    
+    images = white_images if color == chess.WHITE else black_images
+    
+    screen.blit(images[chess.QUEEN], (310, 360))
+    screen.blit(images[chess.ROOK], (410, 360))
+    screen.blit(images[chess.BISHOP], (510, 360))
+    screen.blit(images[chess.KNIGHT], (610, 360))
+    pygame.display.flip()
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                x, y = event.pos
+                if 350 <= y <= 450:
+                    if 300 <= x < 400: return chess.QUEEN
+                    elif 400 <= x < 500: return chess.ROOK
+                    elif 500 <= x < 600: return chess.BISHOP
+                    elif 600 <= x < 700: return chess.KNIGHT
 
 
 def _sq_to_pixel(sq: int, flipped: bool) -> tuple[int, int]:

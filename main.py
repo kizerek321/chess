@@ -63,22 +63,26 @@ while run:
                         if piece and piece.color == state.board.turn:
                             state.selection = clicked_sq
                             state.valid_moves = [move.to_square for move in state.board.legal_moves if move.from_square == clicked_sq]
+
                         elif clicked_sq in state.valid_moves:
-                            # Find the actual move
                             move_to_make = None
+                            is_promotion = False
+                            
                             for move in state.board.legal_moves:
                                 if move.from_square == state.selection and move.to_square == clicked_sq:
-                                    # Handle promotion (auto-promote to Queen) - TODO: Add promotion GUI
                                     if move.promotion:
-                                        if move.promotion == chess.QUEEN:
-                                            move_to_make = move
-                                            break
+                                        is_promotion = True
                                     else:
+                                        move_to_make = move
+                            
+                            if is_promotion:
+                                chosen_piece = get_promotion_choice(state.board.turn)
+                                for move in state.board.legal_moves:
+                                    if move.from_square == state.selection and move.to_square == clicked_sq and move.promotion == chosen_piece:
                                         move_to_make = move
                                         break
                             
                             if move_to_make:
-                                # Track captured pieces before pushing move
                                 target_piece = state.board.piece_at(clicked_sq)
                                 if state.board.is_en_passant(move_to_make):
                                     captured_type = chess.PAWN
@@ -97,7 +101,6 @@ while run:
                                 state.selection = None
                                 state.valid_moves = []
                                 
-                                # check after move if game over
                                 if state.board.is_checkmate():
                                     state.winner = 'White' if state.board.turn == chess.BLACK else 'Black'
                                     state.game_over = True

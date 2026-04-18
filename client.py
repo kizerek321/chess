@@ -1,6 +1,7 @@
 import sys
 import chess
 import pygame
+from drawBoard import get_promotion_choice
 
 from drawBoard import (
     draw_board,
@@ -12,6 +13,7 @@ from drawBoard import (
     draw_valid,
     draw_waiting,
     _pixel_to_sq,
+    get_promotion_choice,
 )
 from constants import screen, timer, fps, font, medium_font
 from game_state import GameState
@@ -141,14 +143,20 @@ def handle_board_click(x_tile: int, y_tile: int, state: GameState, network: Netw
         elif clicked_sq in state.valid_moves:
             # Clicked on a legal destination square — find the move and send it to the server
             move_to_send = None
+            is_promotion = False
             for move in state.board.legal_moves:
                 if move.from_square == state.selection and move.to_square == clicked_sq:
-                    # Auto-promotion to queen
                     if move.promotion:
-                        if move.promotion == chess.QUEEN:
-                            move_to_send = move
-                            break
+                        is_promotion = True
+                        break
                     else:
+                        move_to_send = move
+                        break
+            
+            if is_promotion:
+                chosen_piece = get_promotion_choice(state.my_color)
+                for move in state.board.legal_moves:
+                    if move.from_square == state.selection and move.to_square == clicked_sq and move.promotion == chosen_piece:
                         move_to_send = move
                         break
 
