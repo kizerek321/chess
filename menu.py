@@ -12,13 +12,13 @@ def draw_menu():
     title = big_font.render("CHESS MULTIPLAYER", True, 'black')
     screen.blit(title, (WIDTH // 2 - title.get_width() // 2, 200))
     
-    # Przycisk: Gra Lokalna
+    #button - local game
     pygame.draw.rect(screen, 'black', [300, 400, 400, 80])
     pygame.draw.rect(screen, 'gold', [300, 400, 400, 80], 3)
     loc_text = font.render("Local Game", True, 'white')
     screen.blit(loc_text, (350, 425))
 
-    # Przycisk: Gra Sieciowa
+    #button - multiplayer
     pygame.draw.rect(screen, 'black', [300, 520, 400, 80])
     pygame.draw.rect(screen, 'gold', [300, 520, 400, 80], 3)
     net_text = font.render("Online Multiplayer", True, 'white')
@@ -27,7 +27,7 @@ def draw_menu():
     pygame.display.flip()
 
 def get_ip_screen():
-    """Prosty ekran do wpisania adresu IP"""
+    """Ip screen"""
     ip_text = "127.0.0.1"
     active = True
     
@@ -36,7 +36,7 @@ def get_ip_screen():
         title = big_font.render("Enter Server IP:", True, 'black')
         screen.blit(title, (WIDTH // 2 - title.get_width() // 2, 300))
         
-        # Pole tekstowe
+        #text field
         pygame.draw.rect(screen, 'white', [300, 400, 400, 60])
         pygame.draw.rect(screen, 'black', [300, 400, 400, 60], 3)
         ip_render = font.render(ip_text, True, 'black')
@@ -57,7 +57,7 @@ def get_ip_screen():
                 elif event.key == pygame.K_BACKSPACE:
                     ip_text = ip_text[:-1]
                 else:
-                    # Dodaj literę/cyfrę do IP (limit 15 znaków dla IPv4)
+                    #provide ip
                     if len(ip_text) < 15:
                         ip_text += event.unicode
 
@@ -74,17 +74,17 @@ def main_menu():
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 x, y = event.pos
                 
-                # Kliknięcie w Local Game
+                #click into local game
                 if 300 <= x <= 700 and 400 <= y <= 480:
-                    local_main()  # Uruchamia tryb lokalny
-                    # Po zakończeniu gry lokalnej (return) wróci do pętli menu
+                    local_main()  #run local
+                    #should come back to menu
                     
-                # Kliknięcie w Online Multiplayer
+                #click into multi
                 if 300 <= x <= 700 and 520 <= y <= 600:
-                    ip_address = get_ip_screen() # Pobiera IP
+                    ip_address = get_ip_screen() #get ip
                     if ip_address:
-                        client_run(ip_address) # Uruchamia klienta
-                        # Po zakończeniu gry sieciowej wróci do menu
+                        client_run(ip_address) #run client
+                        #should come back to menu
 
     pygame.quit()
     sys.exit()
