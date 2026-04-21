@@ -2,3 +2,4 @@ __pycache__
 __pycache__/constants.cpython-312.pyc
 __pycache__/drawBoard.cpython-312.pyc
 __pycache__/game_state.cpython-312.pyc
+.idea
