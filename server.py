@@ -13,7 +13,7 @@ class ChessServer:
     Class to handle rooms for chess players.
     Currently:
     - Server waits for two clients
-    - Assigns them colors (white/black)
+    - Assigns them colors (white/black)a
     - Verifies every move (is it legal on the authoritative board)
     - After accepting the move, sends the new FEN to both players
     - Tracks captured pieces and detects the end of the game
@@ -176,6 +176,20 @@ class ChessServer:
             else:
                 self._broadcast(self._build_state_msg(msg["uci"]))
 
+    def console_listener(self, srv: socket.socket) -> None:
+        """thread to listen for exit"""
+        while not self.game_over:
+            cmd = input()
+            if cmd.strip().lower() == "exit":
+                print("[Server] closing on demand")
+                self.game_over = True
+                try:
+                    #closing the port will terminate srv.accept()
+                    srv.close() 
+                except Exception:
+                    pass
+                break
+
     def run(self) -> None:
         """Starts the server, waits for two players, and starts the game."""
         srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -183,6 +197,13 @@ class ChessServer:
         srv.bind((HOST, PORT))
         srv.listen(2)
         print(f"[Server] Listening on {HOST}:{PORT} — waiting for two players...")
+
+        cmd_thread = threading.Thread(
+            target=self.console_listener, 
+            args=(srv,), 
+            daemon=True
+        )
+        cmd_thread.start()
 
         try:
             for i in range(2):
@@ -213,10 +234,20 @@ class ChessServer:
             for t in threads:
                 t.join()
 
+        except OSError:
+            #on pourpose when we type 'exit'
+            if self.game_over:
+                pass
+            else:
+                print("\nScocket problem")
         except KeyboardInterrupt:
-            print("\n[Server] Stopped.")
+            print("\n[Server] Stopped by Ctrl+C.")
         finally:
-            srv.close()
+            self.game_over=True
+            try:
+                srv.close()
+            except Exception:
+                pass
 
 
 if __name__ == "__main__":
