@@ -171,17 +171,17 @@ def handle_board_click(x_tile: int, y_tile: int, state: GameState, network: Netw
             state.selection = None
             state.valid_moves = []
 
-def client_run(host_ip: str) -> None:
+def client_run(host_ip: str, port: int = 8000) -> None:
     """Runs the chess client in multiplayer mode."""
     # Initialize state and connection
     state = GameState()
 
-    print(f"[Client] Connecting to server {host_ip}:{PORT}...")
+    print(f"[Client] Connecting to server {host_ip}:{port}...")
     try:
-        network = NetworkClient(host_ip, PORT)
+        network = NetworkClient(host_ip, port)
         print("[Client] Connected. Waiting for the game to start...")
     except ConnectionRefusedError:
-        print(f"[Client] Could not connect to the server on {host_ip}:{PORT}. Is the server running?")
+        print(f"[Client] Could not connect to the server on {host_ip}:{port}. Is the server running?")
         sys.exit(1)
 
     pygame.display.set_caption("Chess — Multiplayer")

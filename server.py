@@ -1,11 +1,12 @@
 import socket
 import threading
 import chess
-
+import json
+import time
 from protocol import send_msg, recv_msg
 
-HOST = "127.0.0.1"
-PORT = 8000
+HOST = "0.0.0.0"
+#PORT = 8000
 
 
 class ChessServer:
@@ -190,13 +191,47 @@ class ChessServer:
                     pass
                 break
 
+
+    def _lan_broadcaster(self):
+        """Thread sending UDP packets with server information into LAN"""
+        udp_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+        udp_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        
+        #local computer's ip
+        local_ip = socket.gethostbyname(socket.gethostname())
+        
+        while not self.game_over:
+            #count connected players
+            players_count = sum(1 for c in self.clients if c is not None)
+            
+            #broadcast only when there are free slots to join
+            if players_count < 2:
+                msg = json.dumps({
+                    "name": f"Pokój ({local_ip}:{self.port})",
+                    "ip": local_ip,
+                    "port": self.port,
+                    "players": players_count
+                }).encode('utf-8')
+                
+                try:
+                    #brodcast to 8001
+                    udp_sock.sendto(msg, ('<broadcast>', 8001))
+                except Exception:
+                    pass
+            
+            #broadcast every 1 scnd
+            time.sleep(1)
+            
+        udp_sock.close()
+
     def run(self) -> None:
         """Starts the server, waits for two players, and starts the game."""
         srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        srv.bind((HOST, PORT))
+        srv.bind((HOST, 0))
+        self.port = srv.getsockname()[1]
         srv.listen(2)
-        print(f"[Server] Listening on {HOST}:{PORT} — waiting for two players...")
+        print(f"[Server] Listening on {HOST}:{self.port} — waiting for two players")
 
         cmd_thread = threading.Thread(
             target=self.console_listener, 
@@ -204,6 +239,9 @@ class ChessServer:
             daemon=True
         )
         cmd_thread.start()
+
+        udp_thread = threading.Thread(target=self._lan_broadcaster, daemon=True)
+        udp_thread.start()
 
         try:
             for i in range(2):
