@@ -164,6 +164,15 @@ class ChessRoom:
         except Exception:
             pass
 
+    def get_local_ip():
+        # Tworzymy tymczasowe gniazdo, by sprawdzić, którą kartą wychodzimy na świat
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            try:
+                s.connect(("8.8.8.8", 80))
+                return s.getsockname()[0]
+            except Exception:
+                return "127.0.0.1"
+
 
 class ServerManager:
     """Główny menedżer zarządzający pokojami i rozgłaszaniem w LAN."""
@@ -175,7 +184,8 @@ class ServerManager:
     def _lan_broadcaster(self):
         udp_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         udp_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        local_ip = socket.gethostbyname(socket.gethostname())
+        #local_ip = socket.gethostbyname(socket.gethostname())
+        local_ip = self.get_local_ip()
 
         while self.running:
             # Rozgłaszamy każdy aktywny pokój, który potrzebuje graczy
