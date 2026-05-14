@@ -9,7 +9,7 @@ from protocol import send_msg, recv_msg
 HOST = "0.0.0.0"
 
 class ChessRoom:
-    """Pojedyncza instancja gry (pokój), działająca na własnym porcie."""
+    """Single game instance (room), running on its own port."""
     def __init__(self, room_name: str):
         self.room_name = room_name
         self.board = chess.Board()
@@ -22,14 +22,14 @@ class ChessRoom:
         self.game_over = False
         self.players_count = 0
 
-        # Gniazdo TCP dla tego konkretnego pokoju na losowym porcie
+        # TCP socket for this room on a random port
         self.srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.srv.bind((HOST, 0))
         self.port = self.srv.getsockname()[1]
         self.srv.listen(2)
 
-        # Uruchamiamy wątek akceptujący 2 graczy dla tego pokoju
+        # Starting a thread to accept 2 players for this room
         threading.Thread(target=self._accept_players, daemon=True).start()
 
     def _accept_players(self):
@@ -39,7 +39,7 @@ class ChessRoom:
                 self.clients[i] = conn
                 self.players_count += 1
                 color = self.colors[i]
-                print(f"[{self.room_name}] Gracz {color} dołączył: {addr}")
+                print(f"[{self.room_name}] Player {color} joined: {addr}")
 
                 send_msg(conn, {
                     "type": "game_start",
@@ -47,13 +47,13 @@ class ChessRoom:
                     "fen": self.board.fen(),
                 })
 
-            print(f"[{self.room_name}] Obaj gracze dołączyli — start gry!")
+            print(f"[{self.room_name}] Both players have joined — game start!")
 
-            # Start nasłuchiwania ruchów od graczy
+            # Start listening for moves from players
             for i in range(2):
                 threading.Thread(target=self.handle_client, args=(self.clients[i], i), daemon=True).start()
         except OSError:
-            pass # Pokój został zamknięty przed czasem
+            pass # Room was closed early
 
     def _broadcast(self, msg: dict) -> None:
         for conn in self.clients:
@@ -113,7 +113,8 @@ class ChessRoom:
             pass
         finally:
             conn.close()
-            # Jeśli gracz wyjdzie, zamykamy pokój, by uniknąć zawieszenia drugiego gracza
+            # If player disconnects, close the room to avoid hanging the other player
+            # change to measure 30 seconds of wainting for rejoing of player
             self.game_over = True 
 
     def _handle_move(self, msg: dict, player_idx: int, client_chess_color: chess.Color, color: str) -> None:
@@ -165,7 +166,7 @@ class ChessRoom:
             pass
 
 def get_local_ip():
-    # Tworzymy tymczasowe gniazdo, by sprawdzić, którą kartą wychodzimy na świat
+    # Create a temporary socket to check which interface we are using to connect to the internet
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
         try:
             s.connect(("8.8.8.8", 80))
@@ -175,7 +176,7 @@ def get_local_ip():
 
 
 class ServerManager:
-    """Główny menedżer zarządzający pokojami i rozgłaszaniem w LAN."""
+    """Main manager for managing rooms and broadcasting in LAN."""
     def __init__(self):
         self.rooms: list[ChessRoom] = []
         self.running = True
@@ -188,7 +189,7 @@ class ServerManager:
         local_ip = get_local_ip()
 
         while self.running:
-            # Rozgłaszamy każdy aktywny pokój, który potrzebuje graczy
+            # Broadcast each active room that needs players
             for room in self.rooms:
                 if room.players_count < 2 and not room.game_over:
                     msg = json.dumps({
@@ -205,27 +206,27 @@ class ServerManager:
         udp_sock.close()
 
     def _create_room(self):
-        name = f"Pokój {self.room_counter}"
+        name = f"Room {self.room_counter}"
         new_room = ChessRoom(name)
         self.rooms.append(new_room)
-        print(f"[Menedżer] Otwarto {name} na porcie {new_room.port}")
+        print(f"[Manager] Opened {name} on port {new_room.port}")
         self.room_counter += 1
 
     def run(self):
-        print(f"--- SERWER SZACHOWY URUCHOMIONY ---")
-        print("Komendy: 'add room' (nowy pokój), 'exit' (wyłączenie serwera)\n")
+        print(f"--- CHESS SERVER LAUNCHED ---")
+        print("Commands: 'add room' (new room), 'exit' (shutting down server)\n")
 
-        # Uruchamiamy wątek rozgłaszający dla LAN
+        # Start LAN broadcasting thread
         threading.Thread(target=self._lan_broadcaster, daemon=True).start()
         
-        # Automatycznie otwieramy pierwszy pokój na start
+        # Open first room for start
         self._create_room()
 
-        # Główna pętla konsoli
+        # Main console loop
         while self.running:
             cmd = input().strip().lower()
             if cmd == "exit":
-                print("[Menedżer] Zamykanie wszystkich pokoi...")
+                print("[Manager] Shutting down all rooms...")
                 self.running = False
                 for room in self.rooms:
                     room.close()

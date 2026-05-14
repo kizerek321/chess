@@ -96,10 +96,10 @@ def handle_server_message(msg: dict, state: GameState) -> None:
             state.winner = "Draw"
 
         state.game_over = True
-        print(f"[Klient] Koniec gry: {result} — {msg.get('reason', '')}")
+        print(f"[Client] Game over: {result} — {msg.get('reason', '')}")
 
     elif msg_type == "disconnected":
-        print("[Klient] Utracono połączenie z serwerem.")
+        print("[Client] Disconnected from server.")
         state.game_over = True
         state.winner = "Disconnected"
 
