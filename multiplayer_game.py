@@ -100,8 +100,9 @@ def handle_server_message(msg: dict, state: GameState) -> None:
 
     elif msg_type == "disconnected":
         print("[Client] Disconnected from server.")
-        state.game_over = True
-        state.winner = "Disconnected"
+        if not state.game_over:
+            state.game_over = True
+            state.winner = "Disconnected"
 
 
 def handle_board_click(x_tile: int, y_tile: int, state: GameState, network: NetworkClient) -> None:
@@ -252,15 +253,9 @@ def client_run(host_ip: str, port: int = 8000) -> None:
             # Restart after the game ends (Enter)
             if event.type == pygame.KEYDOWN and state.game_over:
                 if event.key == pygame.K_RETURN:
-                    # Multiplayer does not support restart without a server
-                    # — close the window
                     run = False
 
         pygame.display.flip()
 
     network.close()
-    pygame.quit()
-
-
-if __name__ == "__main__":
-    client_run()
+    #pygame.quit()

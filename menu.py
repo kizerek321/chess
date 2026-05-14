@@ -6,8 +6,8 @@ import time
 import threading
 
 from constants import screen, fps, timer, big_font, font, HEIGHT, WIDTH
-from main import local_main
-from client import client_run
+from local_game import local_main
+from multiplayer_game import client_run
 
 
 

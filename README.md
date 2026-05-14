@@ -35,21 +35,21 @@ To host games for players on your local network:
 
 1. **Start the Server Manager:**
    ```bash
-   python server2.py
+   python ServerManager.py
    ```
 2. The server manager will launch and automatically create the first game room. It continuously broadcasts its presence over UDP (port 8001).
 3. From the server manager console, you can type `add room` to spin up additional parallel games, or `exit` to cleanly shut down all rooms.
 4. Players running `menu.py` on the same network will automatically see your available rooms under the "Browse Servers" tab and can click to connect.
 
 ### Manual Connection (Alternative)
-If you wish to bypass the GUI menu or play across non-LAN networks, you can run the client directly or use the legacy server `server.py` for a single-room static port setup.
+If you wish to bypass the GUI menu or play across non-LAN networks, you can run `multiplayer_game.py` directly to connect to a specific server and port.
 
 ## Project Structure
 - `menu.py` - Graphical main menu with UDP server discovery and mode selection.
-- `server2.py` - Advanced multi-room server manager with LAN broadcasting.
-- `client.py` - Pygame client that connects to a room for multiplayer mode, rendering state and forwarding inputs.
-- `main.py` - Core logic for the local hot-seat game loop.
-- `server.py` - (Legacy) Single-game server implementation.
+- `ServerManager.py` - Central server application managing multiple game rooms and LAN broadcasting.
+- `chessRoom.py` - Handles the game logic and socket communication for an individual multiplayer room instance.
+- `multiplayer_game.py` - Pygame client for multiplayer mode, connecting to a `ChessRoom` to render state and forward inputs.
+- `local_game.py` - Core logic for the local hot-seat game loop.
 - `network.py` & `protocol.py` - Custom TCP socket networking and JSON message framing for client-server communication.
 - `game_state.py` - Core state representation and wrapper for `python-chess`.
 - `drawBoard.py` - Pygame rendering logic for drawing the board, pieces, valid moves, and GUI elements.

@@ -122,8 +122,3 @@ def local_main():
 
         # Update display
         pygame.display.flip()
-
-
-if __name__ == "__main__":
-    local_main()
-    pygame.quit()
