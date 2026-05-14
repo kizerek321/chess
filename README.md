@@ -37,20 +37,21 @@ To host games for players on your local network:
    ```bash
    python ServerManager.py
    ```
-2. The server manager will launch and automatically create the first game room. It continuously broadcasts its presence over UDP (port 8001).
-3. From the server manager console, you can type `add room` to spin up additional parallel games, or `exit` to cleanly shut down all rooms.
-4. Players running `menu.py` on the same network will automatically see your available rooms under the "Browse Servers" tab and can click to connect.
+2. The server manager will launch and begin broadcasting over UDP (port 8001). It features **dynamic room allocation**—it automatically spins up new parallel game rooms (TCP servers) whenever existing ones fill up, ensuring there is always an open room for new players.
+3. Players running `menu.py` on the same network will automatically see your available rooms under the "Browse Servers" tab and can click to connect.
+4. From the server manager console, you can type `exit` to cleanly shut down the server and gracefully close all active rooms.
 
 ### Manual Connection (Alternative)
 If you wish to bypass the GUI menu or play across non-LAN networks, you can run `multiplayer_game.py` directly to connect to a specific server and port.
 
 ## Project Structure
-- `menu.py` - Graphical main menu with UDP server discovery and mode selection.
-- `ServerManager.py` - Central server application managing multiple game rooms and LAN broadcasting.
-- `chessRoom.py` - Handles the game logic and socket communication for an individual multiplayer room instance.
-- `multiplayer_game.py` - Pygame client for multiplayer mode, connecting to a `ChessRoom` to render state and forward inputs.
-- `local_game.py` - Core logic for the local hot-seat game loop.
-- `network.py` & `protocol.py` - Custom TCP socket networking and JSON message framing for client-server communication.
-- `game_state.py` - Core state representation and wrapper for `python-chess`.
-- `drawBoard.py` - Pygame rendering logic for drawing the board, pieces, valid moves, and GUI elements.
-- `constants.py` - Configuration, fonts, dimensions, and visual tokens.
+- `menu.py` - The entry point of the application. Displays the graphical main menu, allows mode selection, and runs a background thread for UDP server discovery (LAN).
+- `ServerManager.py` - The central server manager. Automatically spawns new game rooms to ensure there is always a free spot for incoming players. Broadcasts available rooms on the local network via UDP.
+- `chessRoom.py` - Represents a single multiplayer game session (room) operating on its own TCP port. Handles move validation, server-side game state, and notifies clients about moves, game overs, or player disconnects.
+- `multiplayer_game.py` - The client-side Pygame interface for multiplayer matches. Sends user interactions to the `ChessRoom` server, waits for the server to approve moves, and renders the synchronized game state.
+- `local_game.py` - The Pygame interface and game loop for the local "hot-seat" mode, where both players play on the same physical screen.
+- `network.py` - Contains the `NetworkClient` class, managing the asynchronous TCP connection with the server and polling messages via a thread-safe queue.
+- `protocol.py` - Utility functions (`send_msg`, `recv_msg`) that enforce the communication protocol, structuring messages as prefixed-length JSON payloads to prevent TCP stream fragmentation.
+- `game_state.py` - Maintains the client-side UI state and integrates with the `python-chess` library to compute legal moves, manage the board state, and track captured pieces.
+- `drawBoard.py` - Centralizes the Pygame rendering logic. Responsible for drawing the board, chess pieces, visual highlights (valid moves, checks), and UI overlays.
+- `constants.py` - Stores global configuration values such as screen dimensions, FPS limits, colors, and font settings.
