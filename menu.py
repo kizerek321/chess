@@ -94,12 +94,12 @@ def server_browser_screen():
                 rect = pygame.Rect(200, y_offset, 600, 60)
                 
                 is_reconnecting = srv.get('is_reconnecting', False)
-                client_ips = srv.get('client_ips', [])
+                missing_ips = srv.get('missing_ips', [])
                 
                 can_join = False
                 
                 if is_reconnecting:
-                    if MY_IP in client_ips:
+                    if MY_IP in missing_ips:
                         #can recconect to own room, other can't join
                         bg_color = (200, 255, 200)#green
                         text = f"{srv['name']} - (Click to reconnect)"

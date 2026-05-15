@@ -42,13 +42,18 @@ class ServerManager:
                 if room.players_count < 2 and not room.game_over:
                     is_reconn = any(t is not None for t in room.disconnect_timers)
                     
+                    missing_ips = []
+                    for i in range(2):
+                        if room.clients[i] is None and room.client_ips[i] is not None:
+                            missing_ips.append(room.client_ips[i])
+
                     msg = json.dumps({
                         "name": room.room_name,
                         "ip": local_ip,
                         "port": room.port,
                         "players": room.players_count,
                         "is_reconnecting": is_reconn,
-                        "client_ips": room.client_ips
+                        "missing_ips": missing_ips
                     }).encode('utf-8')
                     try:
                         udp_sock.sendto(msg, ('<broadcast>', 8001))
