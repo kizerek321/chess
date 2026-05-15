@@ -14,6 +14,7 @@ from drawBoard import (
     draw_waiting,
     _pixel_to_sq,
     get_promotion_choice,
+    draw_opponent_disconnected
 )
 from constants import screen, timer, fps, font, medium_font
 from game_state import GameState
@@ -103,6 +104,15 @@ def handle_server_message(msg: dict, state: GameState) -> None:
         if not state.game_over:
             state.game_over = True
             state.winner = "Disconnected"
+
+    elif msg_type == "opponent_disconnected":
+        print("[Client] Opponent disconnected.")
+        state.opponent_disconnected = True
+
+    elif msg_type == "opponent_reconnected":
+        print("[Client] Opponent reconnected.")
+        state.opponent_disconnected = False
+
 
 
 def handle_board_click(x_tile: int, y_tile: int, state: GameState, network: NetworkClient) -> None:
@@ -218,6 +228,9 @@ def client_run(host_ip: str, port: int = 8000) -> None:
         if state.game_over:
             draw_game_over(state)
 
+        if state.opponent_disconnected:
+            draw_opponent_disconnected(state)
+
         for event in pygame.event.get():
 
             if event.type == pygame.QUIT:
@@ -235,7 +248,8 @@ def client_run(host_ip: str, port: int = 8000) -> None:
                         or not state.connected
                         or state.my_color is None
                         or state.board.turn != state.my_color
-                        or state.pending_move):
+                        or state.pending_move
+                        or state.opponent_disconnected):
                     continue
 
                 x_coord = event.pos[0] // 100

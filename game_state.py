@@ -6,7 +6,8 @@ class GameState:
         self.counter = 0
         self.winner = ''
         self.game_over = False
-
+        self.opponent_disconnected = False
+        
         # Core game logic using python-chess
         self.board = chess.Board()
 

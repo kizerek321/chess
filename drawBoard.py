@@ -188,3 +188,8 @@ def draw_pending(state) -> None:
     """Displays information about waiting for move confirmation."""
     pygame.draw.rect(screen, (30, 30, 30), [150, 755, 500, 40])
     screen.blit(medium_font.render('Waiting for server confirmation...', True, 'yellow'), (160, 763))
+
+def draw_opponent_disconnected(state) -> None:
+    """Displays information about the opponent being disconnected."""
+    pygame.draw.rect(screen, (30, 30, 30), [150, 755, 560, 40])
+    screen.blit(medium_font.render('Opponent disconnected. Waiting for opponent to reconnect...', True, 'yellow'), (160, 763))

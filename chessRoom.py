@@ -21,6 +21,8 @@ class ChessRoom:
         self.captured_black = []
         self.game_over = False
         self.players_count = 0
+        self.disconnect_timers = [None, None]
+        self.client_ips = [None, None]
 
         # TCP socket for this room on a random port
         self.srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -34,24 +36,44 @@ class ChessRoom:
 
     def _accept_players(self):
         try:
-            for i in range(2):
+            while not self.game_over:
                 conn, addr = self.srv.accept()
-                self.clients[i] = conn
-                self.players_count += 1
-                color = self.colors[i]
-                print(f"[{self.room_name}] Player {color} joined: {addr}")
+                
+                with self.lock:
+                    if self.clients[0] is None:
+                        slot = 0
+                    elif self.clients[1] is None:
+                        slot = 1
+                    else:
+                        conn.close()
+                        continue
+                        
+                    ip = addr[0]
+                    # Verify IP to restrict reconnect to the original player
+                    # does not work on single machine but for local network will work
+                    if self.client_ips[slot] is not None and self.client_ips[slot] != ip:
+                        print(f"[{self.room_name}] Rejected {ip} (slot {slot} reserved for {self.client_ips[slot]})")
+                        conn.close()
+                        continue
+                        
+                    self.clients[slot] = conn
+                    self.client_ips[slot] = ip
+                    self.players_count += 1
+                    color = self.colors[slot]
+                    print(f"[{self.room_name}] Player {color} joined/rejoined: {addr}")
 
-                send_msg(conn, {
-                    "type": "game_start",
-                    "color": color,
-                    "fen": self.board.fen(),
-                })
+                    if self.disconnect_timers[slot]:
+                        self.disconnect_timers[slot].cancel()
+                        self.disconnect_timers[slot] = None
+                        self._send_to(1 - slot, {"type": "opponent_reconnected"})
 
-            print(f"[{self.room_name}] Both players have joined — game start!")
+                    send_msg(conn, {
+                        "type": "game_start",
+                        "color": color,
+                        "fen": self.board.fen(),
+                    })
 
-            # Start listening for moves from players
-            for i in range(2):
-                threading.Thread(target=self.handle_client, args=(self.clients[i], i), daemon=True).start()
+                    threading.Thread(target=self.handle_client, args=(conn, slot), daemon=True).start()
         except OSError:
             pass # Room was closed early
 
@@ -114,11 +136,15 @@ class ChessRoom:
             pass
         finally:
             conn.close()
-            # If player disconnects, close the room to avoid hanging the other player
-            # change to measure 30 seconds of wainting for rejoing of player
-            if not self.game_over:
-                self._end_game("disconnected", "Opponent disconnected", None)
-            self.game_over = True 
+            with self.lock:
+                self.clients[player_idx] = None
+                if not self.game_over:
+                    self.players_count -= 1
+                    self._send_to(1 - player_idx, {"type": "opponent_disconnected"})
+                    timer = threading.Timer(30.0, self._end_game, args=("disconnected", "Opponent disconnected", None))
+                    self.disconnect_timers[player_idx] = timer
+                    timer.start()
+
 
     def _handle_move(self, msg: dict, player_idx: int, client_chess_color: chess.Color, color: str) -> None:
         with self.lock:
