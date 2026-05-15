@@ -13,6 +13,16 @@ from multiplayer_game import client_run
 
 discovered_servers = {}
 
+def get_local_ip():
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+        try:
+            s.connect(("8.8.8.8", 80))
+            return s.getsockname()[0]
+        except Exception:
+            return "127.0.0.1"
+
+MY_IP = get_local_ip()
+
 def listen_for_servers():
     """Background thread listening for UDP packets from servers"""
     udp_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -82,14 +92,43 @@ def server_browser_screen():
         else:
             for srv in active_servers:
                 rect = pygame.Rect(200, y_offset, 600, 60)
-                pygame.draw.rect(screen, 'white', rect)
+                
+                is_reconnecting = srv.get('is_reconnecting', False)
+                client_ips = srv.get('client_ips', [])
+                
+                can_join = False
+                
+                if is_reconnecting:
+                    if MY_IP in client_ips:
+                        #can recconect to own room, other can't join
+                        bg_color = (200, 255, 200)#green
+                        text = f"{srv['name']} - (Click to reconnect)"
+                        text_color = (0, 100, 0)
+                        can_join = True
+                    else:
+                        #cant join, not your room and waiting for player to return
+                        bg_color = (220, 220, 220)#gray
+                        text = f"{srv['name']} - waiting for player to return"
+                        text_color = (120, 120, 120)
+                        can_join = False
+                else:
+                    #default room
+                    bg_color = 'white'
+                    text = f"{srv['name']} - Players: {srv['players']}/2"
+                    text_color = 'black'
+                    can_join = True
+
+                #draw room rect
+                pygame.draw.rect(screen, bg_color, rect)
                 pygame.draw.rect(screen, 'black', rect, 3)
                 
-                text = f"{srv['name']} - Players: {srv['players']}/2"
-                render_text = font.render(text, True, 'black')
+                render_text = font.render(text, True, text_color)
                 screen.blit(render_text, (220, y_offset + 15))
                 
-                rects.append((rect, srv['ip'], srv['port']))
+                #add to clickable rects if can join or reconnect
+                if can_join:
+                    rects.append((rect, srv['ip'], srv['port']))
+                
                 y_offset += 80
                 
         info_back = font.render("Press ESC to return", True, 'black')

@@ -40,11 +40,15 @@ class ServerManager:
             # Broadcast each active room that needs players
             for room in list(self.rooms):
                 if room.players_count < 2 and not room.game_over:
+                    is_reconn = any(t is not None for t in room.disconnect_timers)
+                    
                     msg = json.dumps({
                         "name": room.room_name,
                         "ip": local_ip,
                         "port": room.port,
-                        "players": room.players_count
+                        "players": room.players_count,
+                        "is_reconnecting": is_reconn,
+                        "client_ips": room.client_ips
                     }).encode('utf-8')
                     try:
                         udp_sock.sendto(msg, ('<broadcast>', 8001))
