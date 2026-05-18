@@ -21,8 +21,6 @@ from game_state import GameState
 from network import NetworkClient
 
 """
-client.py — chess client for multiplayer mode.
-
 Runs Pygame GUI and connects to the chess server.
 The server is the authority on game state — the client does not move pieces
 locally before receiving confirmation (move_ok).
@@ -239,11 +237,11 @@ def client_run(host_ip: str, port: int = 8000) -> None:
             # Left mouse click
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
 
-                # Do not react to clicks when:
-                #   - the game has ended
-                #   - not connected or no color assigned
-                #   - it's not our turn
-                #   - waiting for server confirmation
+                #dont react to clicks when:
+                #the game has ended
+                #not connected or no color assigned
+                #its not our turn
+                #waiting for server confirmation
                 if (state.game_over
                         or not state.connected
                         or state.my_color is None
