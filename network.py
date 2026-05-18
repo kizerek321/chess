@@ -22,7 +22,7 @@ class NetworkClient:
         """
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((host, port))
-        self._file = self.sock.makefile("r", encoding="utf-8")
+        self._file = self.sock.makefile("r", encoding="utf-8")#r is for reading, we can read from this file-like object using recv_msg
         self._message_queue: queue.Queue[dict] = queue.Queue()
         self._running = True
 

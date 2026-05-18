@@ -133,7 +133,7 @@ class ChessRoom:
                             print(f"[{self.room_name}] Player {color} forfeited.")
                             self._end_game(f"{winner}_wins", "forfeit", None)
         except Exception as e:
-            pass
+            print(f"[{self.room_name}] Error occurred: {e}")
         finally:
             conn.close()
             with self.lock:
@@ -141,7 +141,8 @@ class ChessRoom:
                 if not self.game_over:
                     self.players_count -= 1
                     self._send_to(1 - player_idx, {"type": "opponent_disconnected"})
-                    timer = threading.Timer(30.0, self._end_game, args=("disconnected", "Opponent disconnected", None))
+                    winner_color = "white" if self.colors[1 - player_idx] == "white" else "black"
+                    timer = threading.Timer(30.0, self._end_game, args=(f"{winner_color}_wins", "Opponent abandoned the game", None))
                     self.disconnect_timers[player_idx] = timer
                     timer.start()
 
@@ -187,7 +188,7 @@ class ChessRoom:
                 self._broadcast(self._build_state_msg(msg["uci"]))
 
     def close(self):
-        """Zamyka pokój i zwalnia port."""
+        """Close the room and free the port."""
         self.game_over = True
         try:
             self.srv.close()

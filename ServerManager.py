@@ -92,7 +92,7 @@ class ServerManager:
             elif cmd == "add room":
                 self._create_room()
             else:
-                print("[Menedżer] Nieznana komenda.")
+                print("Unknown command. Available commands: 'add room', 'exit'.")
 
 if __name__ == "__main__":
     ServerManager().run()
